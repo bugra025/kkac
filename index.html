@@ -1,16 +1,22 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>KAÇ - Mobil Sürüm</title>
+  <title>ESCAPE</title>
   <script src="https://cdn.jsdelivr.net/npm/p5@1.9.0/lib/p5.min.js"></script>
+
+  <!-- 🧱 Pixel font (Press Start 2P - Google Fonts) -->
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+
   <style>
     body {
       margin: 0;
       background: black;
       overflow: hidden;
-      font-family: 'Courier New', monospace;
+      font-family: 'Press Start 2P', cursive; /* 🎮 Piksel font */
+      color: white;
+      text-transform: uppercase;
     }
 
     #mobile-controls {
@@ -24,14 +30,15 @@
     }
 
     #mobile-controls button {
-      font-size: 38px;
+      font-size: 32px;
       padding: 20px 35px;
       border: none;
       border-radius: 20px;
-      background: rgba(0, 0, 0, 0.5);
+      background: rgba(0, 0, 0, 0.6);
       color: white;
       box-shadow: 0 0 15px #00bfff;
       backdrop-filter: blur(6px);
+      font-family: 'Press Start 2P', cursive;
     }
 
     #mobile-controls button:active {
@@ -56,7 +63,6 @@ let leftPressed = false, rightPressed = false;
 
 const controls = document.getElementById("mobile-controls");
 
-// === Oyuncu ===
 class Player {
   constructor() {
     this.x = width / 2;
@@ -128,13 +134,13 @@ function showMenu() {
   background(0);
   controls.style.opacity = 1;
   fill("#00bfff");
-  textSize(60);
-  text("KAÇ (Mobil)", width/2, height/2 - 100);
+  textSize(36);
+  text("ESCAPE", width/2, height/2 - 100);
   fill(255);
-  textSize(22);
-  text("Sağa sola hareket et ve hayatta kal!", width/2, height/2 - 20);
+  textSize(12);
+  text("Move left and right to survive!", width/2, height/2 - 20);
   fill("yellow");
-  text("Başlamak için ▶️ tuşuna dokun", width/2, height/2 + 60);
+  text("Tap ▶️ to start", width/2, height/2 + 60);
 }
 
 function startGame() {
@@ -142,7 +148,7 @@ function startGame() {
   score = 0; levelIndex = 0;
   enemySpeed = 3; gameOver = false; gameStarted = true;
   player = new Player();
-  controls.style.opacity = 0; // 🎯 butonlar oyun sırasında gizlenir
+  controls.style.opacity = 0;
 }
 
 function playGame() {
@@ -170,19 +176,19 @@ function playGame() {
     if (b.y > height) enemyBullets.splice(i, 1);
   }
 
-  fill(255); textSize(26);
-  text(`Skor: ${score}`, width/2, 30);
+  fill(255); textSize(14);
+  text(`SCORE: ${score}`, width/2, 30);
   enemySpeed = 3 + score * 0.1;
 }
 
 function showGameOver() {
   background(0);
   fill(255);
-  controls.style.opacity = 1; // 🎯 butonlar yeniden görünür
-  textSize(48);
-  text("GAME OVER", width/2, height/2 - 50);
+  controls.style.opacity = 1;
   textSize(24);
-  text("Tekrar başlamak için ▶️ tuşuna dokun", width/2, height/2 + 20);
+  text("GAME OVER", width/2, height/2 - 50);
+  textSize(12);
+  text("Tap ▶️ to restart", width/2, height/2 + 20);
 }
   </script>
 </body>
