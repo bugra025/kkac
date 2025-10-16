@@ -6,17 +6,45 @@
   <title>ESCAPE</title>
   <script src="https://cdn.jsdelivr.net/npm/p5@1.9.0/lib/p5.min.js"></script>
 
-  <!-- 🧱 Pixel font (Press Start 2P - Google Fonts) -->
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <!-- 🧱 Pixeloid Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Pixeloid+Sans&display=swap" rel="stylesheet">
 
   <style>
     body {
       margin: 0;
       background: black;
       overflow: hidden;
-      font-family: 'Press Start 2P', cursive; /* 🎮 Piksel font */
+      font-family: 'Pixeloid Sans', monospace;
       color: white;
       text-transform: uppercase;
+    }
+
+    /* 🔄 Loading ekranı */
+    #loading-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: black;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      font-family: 'Pixeloid Sans', monospace;
+      z-index: 9999;
+      transition: opacity 0.8s ease;
+    }
+
+    #loading-text {
+      font-size: 18px;
+      animation: blink 1s infinite alternate;
+    }
+
+    @keyframes blink {
+      from { opacity: 0.5; }
+      to { opacity: 1; }
     }
 
     #mobile-controls {
@@ -25,7 +53,7 @@
       width: 100%;
       display: flex;
       justify-content: space-around;
-      z-index: 999;
+      z-index: 998;
       transition: opacity 0.4s ease;
     }
 
@@ -38,7 +66,7 @@
       color: white;
       box-shadow: 0 0 15px #00bfff;
       backdrop-filter: blur(6px);
-      font-family: 'Press Start 2P', cursive;
+      font-family: 'Pixeloid Sans', monospace;
     }
 
     #mobile-controls button:active {
@@ -47,6 +75,13 @@
   </style>
 </head>
 <body>
+  <!-- ⏳ Loading ekranı -->
+  <div id="loading-screen">
+    <h1>ESCAPE</h1>
+    <div id="loading-text">Loading...</div>
+  </div>
+
+  <!-- 🎮 Mobil kontrol butonları -->
   <div id="mobile-controls">
     <button id="left-btn">⬅️</button>
     <button id="start-btn">▶️</button>
@@ -62,7 +97,17 @@ let levelIndex = 0, enemySpeed = 3;
 let leftPressed = false, rightPressed = false;
 
 const controls = document.getElementById("mobile-controls");
+const loadingScreen = document.getElementById("loading-screen");
 
+// === Loading ekranı gecikmeli kapatma ===
+window.addEventListener("load", () => {
+  setTimeout(() => {
+    loadingScreen.style.opacity = 0;
+    setTimeout(() => loadingScreen.style.display = "none", 800);
+  }, 1000);
+});
+
+// === Oyuncu ===
 class Player {
   constructor() {
     this.x = width / 2;
@@ -135,12 +180,13 @@ function showMenu() {
   controls.style.opacity = 1;
   fill("#00bfff");
   textSize(36);
+  textFont("Pixeloid Sans");
   text("ESCAPE", width/2, height/2 - 100);
   fill(255);
   textSize(12);
-  text("Move left and right to survive!", width/2, height/2 - 20);
+  text("MOVE LEFT AND RIGHT TO SURVIVE!", width/2, height/2 - 20);
   fill("yellow");
-  text("Tap ▶️ to start", width/2, height/2 + 60);
+  text("TAP ▶️ TO START", width/2, height/2 + 60);
 }
 
 function startGame() {
@@ -176,7 +222,9 @@ function playGame() {
     if (b.y > height) enemyBullets.splice(i, 1);
   }
 
-  fill(255); textSize(14);
+  fill(255);
+  textSize(14);
+  textFont("Pixeloid Sans");
   text(`SCORE: ${score}`, width/2, 30);
   enemySpeed = 3 + score * 0.1;
 }
@@ -186,9 +234,10 @@ function showGameOver() {
   fill(255);
   controls.style.opacity = 1;
   textSize(24);
+  textFont("Pixeloid Sans");
   text("GAME OVER", width/2, height/2 - 50);
   textSize(12);
-  text("Tap ▶️ to restart", width/2, height/2 + 20);
+  text("TAP ▶️ TO RESTART", width/2, height/2 + 20);
 }
   </script>
 </body>
