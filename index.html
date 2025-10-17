@@ -1,19 +1,73 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ESCAPE</title>
   <script src="https://cdn.jsdelivr.net/npm/p5@1.9.0/lib/p5.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Pixeloid+Sans&display=swap" rel="stylesheet">
   <style>
-    body { margin:0; background:black; overflow:hidden; font-family:'Pixeloid Sans', monospace; color:white; text-transform:uppercase; }
-    #loading-screen{position:fixed;top:0;left:0;width:100%;height:100%;background:black;color:white;display:flex;align-items:center;justify-content:center;flex-direction:column;z-index:9999;transition:opacity .8s}
-    #loading-text{font-size:18px;animation:blink 1s infinite alternate}
-    @keyframes blink{from{opacity:.5}to{opacity:1}}
-    #mobile-controls{position:fixed;bottom:20px;width:100%;display:flex;justify-content:space-around;z-index:998;transition:opacity .4s}
-    #mobile-controls button{font-size:32px;padding:20px 35px;border:none;border-radius:20px;background:rgba(0,0,0,.6);color:white;box-shadow:0 0 15px #00bfff;backdrop-filter:blur(6px);font-family:'Pixeloid Sans', monospace}
-    #mobile-controls button:active{background:rgba(0,255,255,.4)}
+    body {
+      margin: 0;
+      background: black;
+      overflow: hidden;
+      font-family: 'Pixeloid Sans', monospace;
+      color: white;
+      text-transform: uppercase;
+    }
+
+    #loading-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: black;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      font-family: 'Pixeloid Sans', monospace;
+      z-index: 9999;
+      transition: opacity 0.8s ease;
+    }
+
+    #loading-text {
+      font-size: 18px;
+      animation: blink 1s infinite alternate;
+    }
+
+    @keyframes blink {
+      from { opacity: 0.5; }
+      to { opacity: 1; }
+    }
+
+    #mobile-controls {
+      position: fixed;
+      bottom: 20px;
+      width: 100%;
+      display: flex;
+      justify-content: space-around;
+      z-index: 998;
+      transition: opacity 0.4s ease;
+    }
+
+    #mobile-controls button {
+      font-size: 32px;
+      padding: 20px 35px;
+      border: none;
+      border-radius: 20px;
+      background: rgba(0, 0, 0, 0.6);
+      color: white;
+      box-shadow: 0 0 15px #00bfff;
+      backdrop-filter: blur(6px);
+      font-family: 'Pixeloid Sans', monospace;
+    }
+
+    #mobile-controls button:active {
+      background: rgba(0, 255, 255, 0.4);
+    }
   </style>
 </head>
 <body>
@@ -29,189 +83,203 @@
   </div>
 
   <script>
-/* ---------- Ayarlar / değişkenler ---------- */
-let player, enemies = [], enemyBullets = [];
-let playerImg = null;
+let playerImg;
+let player, enemies = [], enemyBullets = [], stars = [];
 let score = 0, gameOver = false, gameStarted = false, lastSpawn = 0;
-let bgColors = ["black","#0f2027","#1a1a40","#2b0000","#333"];
-let enemyColors = ["red","orange","yellow","pink","cyan"];
+let bgColors = ["black", "#0f2027", "#1a1a40", "#2b0000", "#333"];
+let enemyColors = ["red", "orange", "yellow", "pink", "cyan"];
 let levelIndex = 0, enemySpeed = 3;
 let leftPressed = false, rightPressed = false;
+
 const controls = document.getElementById("mobile-controls");
 const loadingScreen = document.getElementById("loading-screen");
 
-/* ---------- preload: görseli yükle (relative path) ---------- */
-function preload(){
-  // Dosya adı escappe-2.png olduğundan bunu kullanıyoruz.
-  // Eğer GitHub'da tam URL kullanmak istersen: loadImage("https://bugra025.github.io/kkac/escappe-2.png")
-  playerImg = loadImage("escappe-2.png", 
-    () => { /* success */ }, 
-    (err) => { console.warn("player image yüklenemedi, fallback mavi daire kullanılacak.", err); }
-  );
+function preload() {
+  playerImg = loadImage("escappe-2.png");
 }
 
-/* ---------- Loading ekranı kapatma ---------- */
 window.addEventListener("load", () => {
   setTimeout(() => {
     loadingScreen.style.opacity = 0;
     setTimeout(() => loadingScreen.style.display = "none", 800);
-  }, 600);
+  }, 1000);
 });
 
-/* ---------- Sınıflar ---------- */
 class Player {
-  constructor(){
-    this.x = width/2;
+  constructor() {
+    this.x = width / 2;
     this.y = height - 60;
-    this.size = 40; // gerektiğinde küçült/büyüt
+    this.size = 40;
     this.speed = 6;
   }
-  update(){
+  update() {
     if (keyIsDown(LEFT_ARROW) || leftPressed) this.x -= this.speed;
     if (keyIsDown(RIGHT_ARROW) || rightPressed) this.x += this.speed;
-    this.x = constrain(this.x, this.size/2, width - this.size/2);
+    this.x = constrain(this.x, this.size / 2, width - this.size / 2);
   }
-  show(){
+  show() {
     imageMode(CENTER);
-    if (playerImg && playerImg.width > 0) {
-      image(playerImg, this.x, this.y, this.size, this.size);
-    } else {
-      // Fallback: mavi daire (orijinal görünüm)
-      fill("#00bfff");
-      ellipse(this.x, this.y, 25);
+    image(playerImg, this.x, this.y, this.size, this.size);
+  }
+}
+
+class Star {
+  constructor() {
+    this.x = random(width);
+    this.y = random(height);
+    this.size = random(1, 3);
+    this.speed = random(1, 4);
+  }
+  update() {
+    this.y += this.speed;
+    if (this.y > height) {
+      this.y = 0;
+      this.x = random(width);
     }
+  }
+  show() {
+    noStroke();
+    fill(255, 255, 255, random(150, 255));
+    ellipse(this.x, this.y, this.size);
   }
 }
 
 class Enemy {
-  constructor(){
-    this.x = random(20, width-20);
+  constructor() {
+    this.x = random(20, width - 20);
     this.y = -20;
     this.size = 20;
     this.color = random(enemyColors);
     this.lastShot = millis();
   }
-  update(){
+  update() {
     this.y += enemySpeed;
-    if (millis() - this.lastShot > random(1000,2000)){
+    if (millis() - this.lastShot > random(1000, 2000)) {
       enemyBullets.push(new EnemyBullet(this.x, this.y));
       this.lastShot = millis();
     }
   }
-  show(){
+  show() {
     fill(this.color);
     ellipse(this.x, this.y, this.size);
   }
 }
 
 class EnemyBullet {
-  constructor(x,y){ this.x=x; this.y=y; this.size=6; }
-  update(){ this.y += 8; }
-  show(){ fill("white"); ellipse(this.x, this.y, this.size); }
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+    this.size = 6;
+  }
+  update() { this.y += 8; }
+  show() { fill("white"); ellipse(this.x, this.y, this.size); }
 }
 
-/* ---------- p5 setup/draw ---------- */
-function setup(){
+function setup() {
   createCanvas(windowWidth, windowHeight);
   textAlign(CENTER, CENTER);
   player = new Player();
 
-  // Mobil butonlar
+  // 🌌 Yıldızları oluştur
+  for (let i = 0; i < 100; i++) {
+    stars.push(new Star());
+  }
+
   document.getElementById("left-btn").addEventListener("touchstart", () => leftPressed = true);
   document.getElementById("left-btn").addEventListener("touchend", () => leftPressed = false);
   document.getElementById("right-btn").addEventListener("touchstart", () => rightPressed = true);
   document.getElementById("right-btn").addEventListener("touchend", () => rightPressed = false);
   document.getElementById("start-btn").addEventListener("touchstart", () => {
     if (!gameStarted) startGame();
-    else if (gameOver) { resetGame(); }
+    else if (gameOver) gameStarted = false;
   });
-
-  // Fare/touch için restart
-  canvas = document.getElementsByTagName('canvas')[0];
-  canvas.addEventListener('touchstart', (e)=>{ if(gameOver) resetGame(); }, {passive:true});
-  canvas.addEventListener('mousedown', (e)=>{ if(gameOver) resetGame(); });
 }
 
-function draw(){
-  if (!gameStarted) { showMenu(); return; }
-  if (gameOver) { showGameOver(); return; }
-  playGame();
+function draw() {
+  if (!gameStarted) showMenu();
+  else if (gameOver) showGameOver();
+  else playGame();
 }
 
-/* ---------- Menüler / Oyun akışı ---------- */
-function showMenu(){
+function showMenu() {
   background(0);
   controls.style.opacity = 1;
   fill("#00bfff");
   textSize(36);
   textFont("Pixeloid Sans");
-  text("ESCAPE", width/2, height/2 - 100);
+  text("ESCAPE", width / 2, height / 2 - 100);
   fill(255);
   textSize(12);
-  text("MOVE LEFT AND RIGHT TO SURVIVE!", width/2, height/2 - 20);
+  text("MOVE LEFT AND RIGHT TO SURVIVE!", width / 2, height / 2 - 20);
   fill("yellow");
-  text("TAP ▶️ TO START", width/2, height/2 + 60);
+  text("TAP ▶️ TO START", width / 2, height / 2 + 60);
 }
 
-function startGame(){
-  enemies = []; enemyBullets = [];
-  score = 0; levelIndex = 0;
-  enemySpeed = 3; gameOver = false; gameStarted = true;
-  player = new Player();
-  controls.style.opacity = 0;
-}
-
-function resetGame(){
-  enemies = []; enemyBullets = [];
-  score = 0; gameOver = false;
-  player = new Player();
-  controls.style.opacity = 0;
+function startGame() {
+  enemies = [];
+  enemyBullets = [];
+  score = 0;
+  levelIndex = 0;
+  enemySpeed = 3;
+  gameOver = false;
   gameStarted = true;
+  player = new Player();
+  controls.style.opacity = 0;
 }
 
-function playGame(){
+function playGame() {
   background(bgColors[levelIndex]);
-  player.update(); player.show();
 
-  if (millis() - lastSpawn > 400) { enemies.push(new Enemy()); lastSpawn = millis(); }
-
-  for (let i = enemies.length-1; i>=0; i--){
-    let e = enemies[i];
-    e.update(); e.show();
-    if (dist(e.x, e.y, player.x, player.y) < 20) gameOver = true;
-    if (e.y > height + 20){ enemies.splice(i,1); score++; if (score % 50 === 0) levelIndex = (levelIndex+1) % bgColors.length; }
+  // 🌌 Yıldızları göster
+  for (let s of stars) {
+    s.update();
+    s.show();
   }
 
-  for (let i = enemyBullets.length-1; i>=0; i--){
+  player.update();
+  player.show();
+
+  if (millis() - lastSpawn > 400) {
+    enemies.push(new Enemy());
+    lastSpawn = millis();
+  }
+
+  for (let i = enemies.length - 1; i >= 0; i--) {
+    let e = enemies[i];
+    e.update();
+    e.show();
+    if (dist(e.x, e.y, player.x, player.y) < 20) gameOver = true;
+    if (e.y > height + 20) {
+      enemies.splice(i, 1);
+      score++;
+      if (score % 50 === 0) levelIndex = (levelIndex + 1) % bgColors.length;
+    }
+  }
+
+  for (let i = enemyBullets.length - 1; i >= 0; i--) {
     let b = enemyBullets[i];
-    b.update(); b.show();
+    b.update();
+    b.show();
     if (dist(b.x, b.y, player.x, player.y) < 15) gameOver = true;
-    if (b.y > height) enemyBullets.splice(i,1);
+    if (b.y > height) enemyBullets.splice(i, 1);
   }
 
   fill(255);
   textSize(14);
   textFont("Pixeloid Sans");
-  text(`SCORE: ${score}`, width/2, 30);
+  text(`SCORE: ${score}`, width / 2, 30);
   enemySpeed = 3 + score * 0.1;
 }
 
-function showGameOver(){
+function showGameOver() {
   background(0);
   fill(255);
   controls.style.opacity = 1;
   textSize(24);
   textFont("Pixeloid Sans");
-  text("GAME OVER", width/2, height/2 - 50);
+  text("GAME OVER", width / 2, height / 2 - 50);
   textSize(12);
-  text("TAP ▶️ TO RESTART", width/2, height/2 + 20);
-}
-
-/* ---------- p5 resize handling ---------- */
-function windowResized(){
-  resizeCanvas(windowWidth, windowHeight);
-  // player konumunu sınırlamak için
-  if (player) player.x = constrain(player.x, (player.size||40)/2, width - (player.size||40)/2);
+  text("TAP ▶️ TO RESTART", width / 2, height / 2 + 20);
 }
   </script>
 </body>
