@@ -94,9 +94,9 @@ let leftPressed = false, rightPressed = false;
 const controls = document.getElementById("mobile-controls");
 const loadingScreen = document.getElementById("loading-screen");
 
-// 🖼️ Oyuncu görselini yükle
+// 🎨 Oyuncu görselini yükle (PNG)
 function preload() {
-  playerImg = loadImage("escape.ico");
+  playerImg = loadImage("player.png"); // 🔹 player.png dosyası index.html ile aynı klasörde olmalı
 }
 
 // === Loading ekranı ===
@@ -112,7 +112,7 @@ class Player {
   constructor() {
     this.x = width / 2;
     this.y = height - 60;
-    this.size = 40; // Görselin boyutu
+    this.size = 40; // Görsel boyutu (dilersen 30 yapabilirsin)
     this.speed = 6;
   }
   update() {
