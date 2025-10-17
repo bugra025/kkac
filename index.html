@@ -86,7 +86,6 @@
 let playerImg;
 let player, enemies = [], enemyBullets = [], stars = [];
 let score = 0, gameOver = false, gameStarted = false, lastSpawn = 0;
-let bgColors = ["black", "#0f2027", "#1a1a40", "#2b0000", "#333"];
 let enemyColors = ["red", "orange", "yellow", "pink", "cyan"];
 let levelIndex = 0, enemySpeed = 3;
 let leftPressed = false, rightPressed = false;
@@ -94,10 +93,12 @@ let leftPressed = false, rightPressed = false;
 const controls = document.getElementById("mobile-controls");
 const loadingScreen = document.getElementById("loading-screen");
 
+// 🎨 Görseller
 function preload() {
   playerImg = loadImage("escappe-2.png");
 }
 
+// ⏳ Loading ekranı
 window.addEventListener("load", () => {
   setTimeout(() => {
     loadingScreen.style.opacity = 0;
@@ -105,6 +106,7 @@ window.addEventListener("load", () => {
   }, 1000);
 });
 
+// 🚀 Oyuncu
 class Player {
   constructor() {
     this.x = width / 2;
@@ -123,12 +125,13 @@ class Player {
   }
 }
 
+// ✨ Yıldız sınıfı
 class Star {
   constructor() {
     this.x = random(width);
     this.y = random(height);
     this.size = random(1, 3);
-    this.speed = random(1, 4);
+    this.speed = random(1, 3);
   }
   update() {
     this.y += this.speed;
@@ -139,11 +142,12 @@ class Star {
   }
   show() {
     noStroke();
-    fill(255, 255, 255, random(150, 255));
+    fill(255, 255, 255, random(180, 255));
     ellipse(this.x, this.y, this.size);
   }
 }
 
+// 🛸 Düşmanlar
 class Enemy {
   constructor() {
     this.x = random(20, width - 20);
@@ -165,6 +169,7 @@ class Enemy {
   }
 }
 
+// 💣 Düşman mermisi
 class EnemyBullet {
   constructor(x, y) {
     this.x = x;
@@ -180,11 +185,12 @@ function setup() {
   textAlign(CENTER, CENTER);
   player = new Player();
 
-  // 🌌 Yıldızları oluştur
+  // 🌌 100 yıldız oluştur
   for (let i = 0; i < 100; i++) {
     stars.push(new Star());
   }
 
+  // 📱 Mobil kontroller
   document.getElementById("left-btn").addEventListener("touchstart", () => leftPressed = true);
   document.getElementById("left-btn").addEventListener("touchend", () => leftPressed = false);
   document.getElementById("right-btn").addEventListener("touchstart", () => rightPressed = true);
@@ -201,8 +207,10 @@ function draw() {
   else playGame();
 }
 
+// 🏁 Menü ekranı
 function showMenu() {
   background(0);
+  for (let s of stars) { s.update(); s.show(); }
   controls.style.opacity = 1;
   fill("#00bfff");
   textSize(36);
@@ -215,6 +223,7 @@ function showMenu() {
   text("TAP ▶️ TO START", width / 2, height / 2 + 60);
 }
 
+// 🎮 Oyun başlat
 function startGame() {
   enemies = [];
   enemyBullets = [];
@@ -227,14 +236,12 @@ function startGame() {
   controls.style.opacity = 0;
 }
 
+// 🔥 Oyun döngüsü
 function playGame() {
-  background(bgColors[levelIndex]);
+  background(0);
 
   // 🌌 Yıldızları göster
-  for (let s of stars) {
-    s.update();
-    s.show();
-  }
+  for (let s of stars) { s.update(); s.show(); }
 
   player.update();
   player.show();
@@ -252,7 +259,7 @@ function playGame() {
     if (e.y > height + 20) {
       enemies.splice(i, 1);
       score++;
-      if (score % 50 === 0) levelIndex = (levelIndex + 1) % bgColors.length;
+      if (score % 50 === 0) enemySpeed += 0.5;
     }
   }
 
@@ -268,11 +275,12 @@ function playGame() {
   textSize(14);
   textFont("Pixeloid Sans");
   text(`SCORE: ${score}`, width / 2, 30);
-  enemySpeed = 3 + score * 0.1;
 }
 
+// 💀 Game Over
 function showGameOver() {
   background(0);
+  for (let s of stars) { s.update(); s.show(); }
   fill(255);
   controls.style.opacity = 1;
   textSize(24);
