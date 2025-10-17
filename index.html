@@ -5,10 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ESCAPE</title>
   <script src="https://cdn.jsdelivr.net/npm/p5@1.9.0/lib/p5.min.js"></script>
-
-  <!-- 🧱 Pixeloid Font -->
   <link href="https://fonts.googleapis.com/css2?family=Pixeloid+Sans&display=swap" rel="stylesheet">
-
   <style>
     body {
       margin: 0;
@@ -19,7 +16,6 @@
       text-transform: uppercase;
     }
 
-    /* 🔄 Loading ekranı */
     #loading-screen {
       position: fixed;
       top: 0;
@@ -75,13 +71,11 @@
   </style>
 </head>
 <body>
-  <!-- ⏳ Loading ekranı -->
   <div id="loading-screen">
     <h1>ESCAPE</h1>
     <div id="loading-text">Loading...</div>
   </div>
 
-  <!-- 🎮 Mobil kontrol butonları -->
   <div id="mobile-controls">
     <button id="left-btn">⬅️</button>
     <button id="start-btn">▶️</button>
@@ -89,6 +83,7 @@
   </div>
 
   <script>
+let playerImg;
 let player, enemies = [], enemyBullets = [];
 let score = 0, gameOver = false, gameStarted = false, lastSpawn = 0;
 let bgColors = ["black", "#0f2027", "#1a1a40", "#2b0000", "#333"];
@@ -99,7 +94,12 @@ let leftPressed = false, rightPressed = false;
 const controls = document.getElementById("mobile-controls");
 const loadingScreen = document.getElementById("loading-screen");
 
-// === Loading ekranı gecikmeli kapatma ===
+// 🖼️ Oyuncu görselini yükle
+function preload() {
+  playerImg = loadImage("escape.ico");
+}
+
+// === Loading ekranı ===
 window.addEventListener("load", () => {
   setTimeout(() => {
     loadingScreen.style.opacity = 0;
@@ -112,16 +112,17 @@ class Player {
   constructor() {
     this.x = width / 2;
     this.y = height - 60;
+    this.size = 40; // Görselin boyutu
     this.speed = 6;
   }
   update() {
     if (keyIsDown(LEFT_ARROW) || leftPressed) this.x -= this.speed;
     if (keyIsDown(RIGHT_ARROW) || rightPressed) this.x += this.speed;
-    this.x = constrain(this.x, 20, width - 20);
+    this.x = constrain(this.x, this.size / 2, width - this.size / 2);
   }
   show() {
-    fill("#00bfff");
-    ellipse(this.x, this.y, 25);
+    imageMode(CENTER);
+    image(playerImg, this.x, this.y, this.size, this.size);
   }
 }
 
