@@ -1,165 +1,218 @@
 <!DOCTYPE html>
-<html lang="tr">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>KAÇ - Mobil Sürüm</title>
-    <script src="https://cdn.jsdelivr.net/npm/p5@1.9.0/lib/p5.min.js"></script>
-  </head>
-  <body>
-    <script>
-      let player;
-      let playerImg;
-      let obstacles = [];
-      let score = 0;
-      let gameOver = false;
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ESCAPE</title>
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.9.0/lib/p5.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Pixeloid+Sans&display=swap" rel="stylesheet">
+  <style>
+    body { margin:0; background:black; overflow:hidden; font-family:'Pixeloid Sans', monospace; color:white; text-transform:uppercase; }
+    #loading-screen{position:fixed;top:0;left:0;width:100%;height:100%;background:black;color:white;display:flex;align-items:center;justify-content:center;flex-direction:column;z-index:9999;transition:opacity .8s}
+    #loading-text{font-size:18px;animation:blink 1s infinite alternate}
+    @keyframes blink{from{opacity:.5}to{opacity:1}}
+    #mobile-controls{position:fixed;bottom:20px;width:100%;display:flex;justify-content:space-around;z-index:998;transition:opacity .4s}
+    #mobile-controls button{font-size:32px;padding:20px 35px;border:none;border-radius:20px;background:rgba(0,0,0,.6);color:white;box-shadow:0 0 15px #00bfff;backdrop-filter:blur(6px);font-family:'Pixeloid Sans', monospace}
+    #mobile-controls button:active{background:rgba(0,255,255,.4)}
+  </style>
+</head>
+<body>
+  <div id="loading-screen">
+    <h1>ESCAPE</h1>
+    <div id="loading-text">Loading...</div>
+  </div>
 
-      function preload() {
-        // Yeni görselin adı burada!
-        playerImg = loadImage("escappe-2.png");
-      }
+  <div id="mobile-controls">
+    <button id="left-btn">⬅️</button>
+    <button id="start-btn">▶️</button>
+    <button id="right-btn">➡️</button>
+  </div>
 
-      function setup() {
-        createCanvas(windowWidth, windowHeight);
-        player = new Player();
-      }
+  <script>
+/* ---------- Ayarlar / değişkenler ---------- */
+let player, enemies = [], enemyBullets = [];
+let playerImg = null;
+let score = 0, gameOver = false, gameStarted = false, lastSpawn = 0;
+let bgColors = ["black","#0f2027","#1a1a40","#2b0000","#333"];
+let enemyColors = ["red","orange","yellow","pink","cyan"];
+let levelIndex = 0, enemySpeed = 3;
+let leftPressed = false, rightPressed = false;
+const controls = document.getElementById("mobile-controls");
+const loadingScreen = document.getElementById("loading-screen");
 
-      function draw() {
-        background(10, 10, 30);
+/* ---------- preload: görseli yükle (relative path) ---------- */
+function preload(){
+  // Dosya adı escappe-2.png olduğundan bunu kullanıyoruz.
+  // Eğer GitHub'da tam URL kullanmak istersen: loadImage("https://bugra025.github.io/kkac/escappe-2.png")
+  playerImg = loadImage("escappe-2.png", 
+    () => { /* success */ }, 
+    (err) => { console.warn("player image yüklenemedi, fallback mavi daire kullanılacak.", err); }
+  );
+}
 
-        if (!gameOver) {
-          player.update();
-          player.show();
+/* ---------- Loading ekranı kapatma ---------- */
+window.addEventListener("load", () => {
+  setTimeout(() => {
+    loadingScreen.style.opacity = 0;
+    setTimeout(() => loadingScreen.style.display = "none", 800);
+  }, 600);
+});
 
-          // Engellerin oluşturulması
-          if (frameCount % 70 === 0) {
-            obstacles.push(new Obstacle());
-          }
+/* ---------- Sınıflar ---------- */
+class Player {
+  constructor(){
+    this.x = width/2;
+    this.y = height - 60;
+    this.size = 40; // gerektiğinde küçült/büyüt
+    this.speed = 6;
+  }
+  update(){
+    if (keyIsDown(LEFT_ARROW) || leftPressed) this.x -= this.speed;
+    if (keyIsDown(RIGHT_ARROW) || rightPressed) this.x += this.speed;
+    this.x = constrain(this.x, this.size/2, width - this.size/2);
+  }
+  show(){
+    imageMode(CENTER);
+    if (playerImg && playerImg.width > 0) {
+      image(playerImg, this.x, this.y, this.size, this.size);
+    } else {
+      // Fallback: mavi daire (orijinal görünüm)
+      fill("#00bfff");
+      ellipse(this.x, this.y, 25);
+    }
+  }
+}
 
-          for (let i = obstacles.length - 1; i >= 0; i--) {
-            obstacles[i].update();
-            obstacles[i].show();
+class Enemy {
+  constructor(){
+    this.x = random(20, width-20);
+    this.y = -20;
+    this.size = 20;
+    this.color = random(enemyColors);
+    this.lastShot = millis();
+  }
+  update(){
+    this.y += enemySpeed;
+    if (millis() - this.lastShot > random(1000,2000)){
+      enemyBullets.push(new EnemyBullet(this.x, this.y));
+      this.lastShot = millis();
+    }
+  }
+  show(){
+    fill(this.color);
+    ellipse(this.x, this.y, this.size);
+  }
+}
 
-            if (obstacles[i].hits(player)) {
-              gameOver = true;
-            }
+class EnemyBullet {
+  constructor(x,y){ this.x=x; this.y=y; this.size=6; }
+  update(){ this.y += 8; }
+  show(){ fill("white"); ellipse(this.x, this.y, this.size); }
+}
 
-            if (obstacles[i].offscreen()) {
-              obstacles.splice(i, 1);
-              score++;
-            }
-          }
+/* ---------- p5 setup/draw ---------- */
+function setup(){
+  createCanvas(windowWidth, windowHeight);
+  textAlign(CENTER, CENTER);
+  player = new Player();
 
-          fill(255);
-          textSize(24);
-          text("Skor: " + score, 20, 40);
-        } else {
-          fill(255, 0, 0);
-          textSize(48);
-          textAlign(CENTER);
-          text("OYUN BİTTİ", width / 2, height / 2);
-          textSize(24);
-          text("Yeniden başlamak için dokun veya tuşa bas", width / 2, height / 2 + 50);
-        }
-      }
+  // Mobil butonlar
+  document.getElementById("left-btn").addEventListener("touchstart", () => leftPressed = true);
+  document.getElementById("left-btn").addEventListener("touchend", () => leftPressed = false);
+  document.getElementById("right-btn").addEventListener("touchstart", () => rightPressed = true);
+  document.getElementById("right-btn").addEventListener("touchend", () => rightPressed = false);
+  document.getElementById("start-btn").addEventListener("touchstart", () => {
+    if (!gameStarted) startGame();
+    else if (gameOver) { resetGame(); }
+  });
 
-      function touchStarted() {
-        if (gameOver) {
-          resetGame();
-        } else {
-          player.up();
-        }
-        return false;
-      }
+  // Fare/touch için restart
+  canvas = document.getElementsByTagName('canvas')[0];
+  canvas.addEventListener('touchstart', (e)=>{ if(gameOver) resetGame(); }, {passive:true});
+  canvas.addEventListener('mousedown', (e)=>{ if(gameOver) resetGame(); });
+}
 
-      function keyPressed() {
-        if (key === ' ' || keyCode === UP_ARROW) {
-          if (gameOver) {
-            resetGame();
-          } else {
-            player.up();
-          }
-        }
-      }
+function draw(){
+  if (!gameStarted) { showMenu(); return; }
+  if (gameOver) { showGameOver(); return; }
+  playGame();
+}
 
-      function resetGame() {
-        obstacles = [];
-        score = 0;
-        gameOver = false;
-        player = new Player();
-      }
+/* ---------- Menüler / Oyun akışı ---------- */
+function showMenu(){
+  background(0);
+  controls.style.opacity = 1;
+  fill("#00bfff");
+  textSize(36);
+  textFont("Pixeloid Sans");
+  text("ESCAPE", width/2, height/2 - 100);
+  fill(255);
+  textSize(12);
+  text("MOVE LEFT AND RIGHT TO SURVIVE!", width/2, height/2 - 20);
+  fill("yellow");
+  text("TAP ▶️ TO START", width/2, height/2 + 60);
+}
 
-      class Player {
-        constructor() {
-          this.x = 100;
-          this.y = height / 2;
-          this.size = 80;
-          this.gravity = 0.7;
-          this.lift = -12;
-          this.velocity = 0;
-        }
+function startGame(){
+  enemies = []; enemyBullets = [];
+  score = 0; levelIndex = 0;
+  enemySpeed = 3; gameOver = false; gameStarted = true;
+  player = new Player();
+  controls.style.opacity = 0;
+}
 
-        up() {
-          this.velocity += this.lift;
-        }
+function resetGame(){
+  enemies = []; enemyBullets = [];
+  score = 0; gameOver = false;
+  player = new Player();
+  controls.style.opacity = 0;
+  gameStarted = true;
+}
 
-        update() {
-          this.velocity += this.gravity;
-          this.y += this.velocity;
-          this.velocity *= 0.9;
+function playGame(){
+  background(bgColors[levelIndex]);
+  player.update(); player.show();
 
-          if (this.y > height - this.size / 2) {
-            this.y = height - this.size / 2;
-            this.velocity = 0;
-          }
+  if (millis() - lastSpawn > 400) { enemies.push(new Enemy()); lastSpawn = millis(); }
 
-          if (this.y < this.size / 2) {
-            this.y = this.size / 2;
-            this.velocity = 0;
-          }
-        }
+  for (let i = enemies.length-1; i>=0; i--){
+    let e = enemies[i];
+    e.update(); e.show();
+    if (dist(e.x, e.y, player.x, player.y) < 20) gameOver = true;
+    if (e.y > height + 20){ enemies.splice(i,1); score++; if (score % 50 === 0) levelIndex = (levelIndex+1) % bgColors.length; }
+  }
 
-        show() {
-          imageMode(CENTER);
-          image(playerImg, this.x, this.y, this.size, this.size);
-        }
-      }
+  for (let i = enemyBullets.length-1; i>=0; i--){
+    let b = enemyBullets[i];
+    b.update(); b.show();
+    if (dist(b.x, b.y, player.x, player.y) < 15) gameOver = true;
+    if (b.y > height) enemyBullets.splice(i,1);
+  }
 
-      class Obstacle {
-        constructor() {
-          this.top = random(height / 2);
-          this.bottom = random(height / 2);
-          this.x = width;
-          this.w = 60;
-          this.speed = 6;
-        }
+  fill(255);
+  textSize(14);
+  textFont("Pixeloid Sans");
+  text(`SCORE: ${score}`, width/2, 30);
+  enemySpeed = 3 + score * 0.1;
+}
 
-        update() {
-          this.x -= this.speed;
-        }
+function showGameOver(){
+  background(0);
+  fill(255);
+  controls.style.opacity = 1;
+  textSize(24);
+  textFont("Pixeloid Sans");
+  text("GAME OVER", width/2, height/2 - 50);
+  textSize(12);
+  text("TAP ▶️ TO RESTART", width/2, height/2 + 20);
+}
 
-        show() {
-          fill(200, 50, 50);
-          rect(this.x, 0, this.w, this.top);
-          rect(this.x, height - this.bottom, this.w, this.bottom);
-        }
-
-        offscreen() {
-          return this.x < -this.w;
-        }
-
-        hits(player) {
-          if (
-            player.y - player.size / 2 < this.top ||
-            player.y + player.size / 2 > height - this.bottom
-          ) {
-            if (player.x + player.size / 2 > this.x && player.x - player.size / 2 < this.x + this.w) {
-              return true;
-            }
-          }
-          return false;
-        }
-      }
-    </script>
-  </body>
+/* ---------- p5 resize handling ---------- */
+function windowResized(){
+  resizeCanvas(windowWidth, windowHeight);
+  // player konumunu sınırlamak için
+  if (player) player.x = constrain(player.x, (player.size||40)/2, width - (player.size||40)/2);
+}
+  </script>
+</body>
 </html>
