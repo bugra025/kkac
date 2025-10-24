@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>ESCAPE</title>
   <script src="https://cdn.jsdelivr.net/npm/p5@1.9.0/lib/p5.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Pixeloid+Sans&display=swap" rel="stylesheet">
@@ -14,6 +14,21 @@
       font-family: 'Pixeloid Sans', monospace;
       color: white;
       text-transform: uppercase;
+      user-select: none;
+      -webkit-user-select: none;
+      -ms-user-select: none;
+      -moz-user-select: none;
+      touch-action: none;
+      -ms-touch-action: none;
+    }
+
+    canvas {
+      user-select: none;
+      -webkit-user-select: none;
+      -ms-user-select: none;
+      -moz-user-select: none;
+      touch-action: none;
+      -ms-touch-action: none;
     }
 
     #loading-screen {
@@ -289,6 +304,12 @@ function showGameOver() {
   textSize(12);
   text("TAP ▶️ TO RESTART", width / 2, height / 2 + 20);
 }
+
+// ⚠️ Long press, sağ tık ve iOS/Android pinch zoom engelle
+document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+document.addEventListener('touchstart', function(e) { if(e.touches.length > 1) e.preventDefault(); }, { passive: false });
+document.addEventListener('gesturestart', function(e) { e.preventDefault(); });
+
   </script>
 </body>
 </html>
