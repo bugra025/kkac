@@ -285,7 +285,7 @@ function playGame() {
       enemies.splice(i, 1);
       score++;
       // Düşman hızı 30 skor aralıkla artıyor, maksimum hız 6
-      if (score % 10 === 0 && enemySpeed < maxEnemySpeed) enemySpeed += 0.5;
+      if (score % 5 === 0 && enemySpeed < maxEnemySpeed) enemySpeed += 0.5;
     }
   }
 
@@ -330,4 +330,5 @@ document.addEventListener('gesturestart', function(e) { e.preventDefault(); });
   </script>
 </body>
 </html>
+
 
