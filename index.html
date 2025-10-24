@@ -167,6 +167,7 @@ class Star {
 }
 
 // 🛸 Düşmanlar
+// 🛸 Düşmanlar
 class Enemy {
   constructor() {
     this.x = random(20, width - 20);
@@ -178,11 +179,14 @@ class Enemy {
   update() {
     this.y += enemySpeed;
 
-    // Mermiler 30 skordan sonra atılıyor ve skor arttıkça aralık kısalıyor
+    // Mermiler 30 skordan sonra atılıyor ve kontrollü geliyor
     if(score >= 30){
       let minInterval = max(1500 - score*5, 300);
       let maxInterval = max(2500 - score*5, 600);
-      if(millis() - this.lastShot > random(minInterval, maxInterval)){
+      
+      // Aynı düşmandan aynı anda birden fazla mermi gelmesini engelle
+      let nearbyBullets = enemyBullets.filter(b => dist(b.x, b.y, this.x, this.y) < 20);
+      if(nearbyBullets.length < 1 && millis() - this.lastShot > random(minInterval, maxInterval)){
         enemyBullets.push(new EnemyBullet(this.x, this.y));
         this.lastShot = millis();
       }
@@ -193,6 +197,7 @@ class Enemy {
     ellipse(this.x, this.y, this.size);
   }
 }
+
 
 // 💣 Düşman mermisi
 class EnemyBullet {
@@ -327,3 +332,4 @@ document.addEventListener('gesturestart', function(e) { e.preventDefault(); });
   </script>
 </body>
 </html>
+
