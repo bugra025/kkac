@@ -105,6 +105,9 @@ let enemyColors = ["red", "orange", "yellow", "pink", "cyan"];
 let levelIndex = 0, enemySpeed = 3;
 let leftPressed = false, rightPressed = false;
 
+// High score
+let highScore = localStorage.getItem('escapeHighScore') || 0;
+
 const controls = document.getElementById("mobile-controls");
 const loadingScreen = document.getElementById("loading-screen");
 
@@ -173,7 +176,8 @@ class Enemy {
   }
   update() {
     this.y += enemySpeed;
-    if (millis() - this.lastShot > random(1000, 2000)) {
+    // Mermiler artık sadece 30 skordan sonra atılıyor
+    if(score >= 30 && millis() - this.lastShot > random(1000, 2000)) {
       enemyBullets.push(new EnemyBullet(this.x, this.y));
       this.lastShot = millis();
     }
@@ -286,14 +290,21 @@ function playGame() {
     if (b.y > height) enemyBullets.splice(i, 1);
   }
 
+  // Skor ve high score
   fill(255);
   textSize(14);
   textFont("Pixeloid Sans");
-  text(`SCORE: ${score}`, width / 2, 30);
+  text(`SCORE: ${score}  |  HIGH SCORE: ${highScore}`, width / 2, 30);
 }
 
 // 💀 Game Over
 function showGameOver() {
+  // High score güncelle
+  if(score > highScore){
+    highScore = score;
+    localStorage.setItem('escapeHighScore', highScore);
+  }
+
   background(0);
   for (let s of stars) { s.update(); s.show(); }
   fill(255);
