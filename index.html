@@ -102,11 +102,12 @@ let playerImg;
 let player, enemies = [], enemyBullets = [], stars = [];
 let score = 0, gameOver = false, gameStarted = false, lastSpawn = 0;
 let enemyColors = ["red", "orange", "yellow", "pink", "cyan"];
-let levelIndex = 0, enemySpeed = 3;
+let enemySpeed = 3;
 let leftPressed = false, rightPressed = false;
 
 // High score
 let highScore = localStorage.getItem('escapeHighScore') || 0;
+const maxEnemySpeed = 6;
 
 const controls = document.getElementById("mobile-controls");
 const loadingScreen = document.getElementById("loading-screen");
@@ -176,10 +177,15 @@ class Enemy {
   }
   update() {
     this.y += enemySpeed;
-    // Mermiler artık sadece 30 skordan sonra atılıyor
-    if(score >= 30 && millis() - this.lastShot > random(1000, 2000)) {
-      enemyBullets.push(new EnemyBullet(this.x, this.y));
-      this.lastShot = millis();
+
+    // Mermiler 30 skordan sonra atılıyor ve skor arttıkça aralık kısalıyor
+    if(score >= 30){
+      let minInterval = max(1500 - score*5, 300);
+      let maxInterval = max(2500 - score*5, 600);
+      if(millis() - this.lastShot > random(minInterval, maxInterval)){
+        enemyBullets.push(new EnemyBullet(this.x, this.y));
+        this.lastShot = millis();
+      }
     }
   }
   show() {
@@ -205,9 +211,7 @@ function setup() {
   player = new Player();
 
   // 🌌 100 yıldız oluştur
-  for (let i = 0; i < 100; i++) {
-    stars.push(new Star());
-  }
+  for (let i = 0; i < 100; i++) stars.push(new Star());
 
   // 📱 Mobil kontroller
   document.getElementById("left-btn").addEventListener("touchstart", () => leftPressed = true);
@@ -247,7 +251,6 @@ function startGame() {
   enemies = [];
   enemyBullets = [];
   score = 0;
-  levelIndex = 0;
   enemySpeed = 3;
   gameOver = false;
   gameStarted = true;
@@ -278,7 +281,8 @@ function playGame() {
     if (e.y > height + 20) {
       enemies.splice(i, 1);
       score++;
-      if (score % 50 === 0) enemySpeed += 0.5;
+      // Düşman hızı 30 skor aralıkla artıyor, maksimum hız 6
+      if (score % 30 === 0 && enemySpeed < maxEnemySpeed) enemySpeed += 0.5;
     }
   }
 
@@ -320,7 +324,6 @@ function showGameOver() {
 document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
 document.addEventListener('touchstart', function(e) { if(e.touches.length > 1) e.preventDefault(); }, { passive: false });
 document.addEventListener('gesturestart', function(e) { e.preventDefault(); });
-
   </script>
 </body>
 </html>
